@@ -26,7 +26,6 @@ export const register = catchAsynch(async (req, res, next) => {
     }
   }
 
-  
   if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
     return next(
       new AppError(
@@ -150,3 +149,5 @@ export const login = catchAsynch(async (req, res, next) => {
     refreshToken: refreshToken,
   });
 });
+
+

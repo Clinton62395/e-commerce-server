@@ -3,7 +3,12 @@ import bcrypt from "bcrypt";
 const userSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: {
+      type: String,
+      required: function () {
+        !this.isGoogleUser;
+      },
+    },
     email: {
       type: String,
       required: true,
@@ -20,19 +25,26 @@ const userSchema = new mongoose.Schema(
 
     phoneNumber: {
       type: String,
-      required: true,
+      required: function () {
+        !this.isGoogleUser;
+      },
       match: [/^\+?[0-9]{8,15}$/, "phone number is invalid"],
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        !this.isGoogleUser;
+      },
       trim: true,
       maxlength: [15, "Password cannot be more than 15 characters"],
       minlength: [6, "Password cannot be less than 6 characters"],
     },
     image: { type: String },
     googleId: { type: String, unique: true },
+
+    isGoogleUser: { type: Boolean, default: false },
   },
+
   { timestamps: true }
 );
 

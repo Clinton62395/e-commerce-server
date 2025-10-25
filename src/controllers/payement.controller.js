@@ -23,6 +23,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     city,
     address,
     postalCode,
+    saveInfo,
   } = req.body;
   console.log("==>body contentes", req.body);
 
@@ -59,6 +60,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     address,
     postalCode,
     cartItems,
+    saveInfo,
     status: "pending",
   });
 
@@ -126,8 +128,6 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
     return next(new AppError("Payment reference not found", 404));
   }
 
-  // const { quantity, price, title } = payment.cartItems;
-
   res.status(200).json({
     success: true,
     message: "Payment reference fetched successfully",
@@ -140,7 +140,9 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
       shippingInfo: {
         firstName: payment.firstName,
         lastName: payment.lastName,
+        userEmail: payment.email,
         address: payment.address,
+        saveInfo: payment.saveInfo,
 
         city: payment.city,
         country: payment.country,

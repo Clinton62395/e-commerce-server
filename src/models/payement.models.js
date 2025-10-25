@@ -21,7 +21,9 @@ const paymentSchema = new mongoose.Schema(
     postalCode: { type: String, required: true },
     address: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
-    save: { type: Boolean, default: false },
+    giftwrap: { type: Boolean, default: false },
+
+    saveInfo: { type: Boolean, default: false },
 
     amount: { type: Number, required: true },
 

@@ -6,7 +6,6 @@ import User from "../models/auth.models.js";
 
 dotenv.config();
 
-
 admin.initializeApp({
   credential: admin.credential.cert({
     type: process.env.TYPE,
@@ -35,10 +34,11 @@ export const googleRegister = catchAsynch(async (req, res, next) => {
   }
 
   user = await User.create({
-    name,
+    firstName: name,
     email,
     image: picture,
     googleId: uid,
+    isGoogleUser: true,
   });
   console.log("user from firabase google==>", user);
 
