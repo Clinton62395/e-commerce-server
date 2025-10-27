@@ -40,8 +40,8 @@ export const resetPassword = catchAsynch(async (req, res, next) => {
   const template = fs.readFileSync(templatePath, "utf-8");
   const html = template
     .replace("{{firstName}}", user.firstName)
-    .replace("{{lastName}}", user.lastName)
-    .replace("{{resetURL}}", resetURL);
+    .replace("{{lastName}}", user.lastName || "")
+    .replaceAll("{{resetURL}}", resetURL);
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -59,10 +59,7 @@ export const resetPassword = catchAsynch(async (req, res, next) => {
 
 export const newPassword = catchAsynch(async (req, res, next) => {
   const { token, newPassword } = req.body;
-  console.log("==> token and newPassword", req.body);
-  console.log("==> token and newPassword", !!req.body);
-  console.log("==> token and newPassword", !!req.body.newPassword);
-  console.log("==> token and newPassword", !!req.body.token);
+
   if (!token || !newPassword) {
     return next(new AppError("Token and new password are required", 400));
   }
