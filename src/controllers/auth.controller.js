@@ -51,6 +51,7 @@ export const register = catchAsynch(async (req, res, next) => {
     phoneNumber,
     email,
     password,
+    isgoogleUser: false,
   });
 
   //   crest jwt token and refresh token
@@ -149,5 +150,3 @@ export const login = catchAsynch(async (req, res, next) => {
     refreshToken: refreshToken,
   });
 });
-
-

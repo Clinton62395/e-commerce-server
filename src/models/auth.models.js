@@ -40,9 +40,11 @@ const userSchema = new mongoose.Schema(
       minlength: [6, "Password cannot be less than 6 characters"],
     },
     image: { type: String },
-    googleId: { type: String, unique: true },
 
     isGoogleUser: { type: Boolean, default: false },
+
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
   },
 
   { timestamps: true }

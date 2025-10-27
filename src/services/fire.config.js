@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import admin from "firebase-admin";
+import jwt from "jsonwebtoken";
 import { catchAsynch } from "../utils/catchAsynch.utils.js";
 import { AppError } from "../utils/appError.js";
 import User from "../models/auth.models.js";
@@ -18,31 +19,52 @@ admin.initializeApp({
 });
 
 export const googleRegister = catchAsynch(async (req, res, next) => {
-  const { token } = req.body;
+  const { token: googleToken } = req.body;
+  console.log("==>token from frontend", googleToken);
+  console.log("==>token from frontend", !!req.body.googleToken);
 
-  if (!token) {
+  if (!googleToken) {
     return next(new AppError("token missing", 400));
   }
 
-  const decodedToken = await admin.auth().verifyIdToken(token);
+  const decodedToken = await admin.auth().verifyIdToken(googleToken);
   const { uid, name, email, picture } = decodedToken;
+  console.log("==>decodedToken from firebase", decodedToken);
 
   let user = await User.findOne({ email });
 
-  if (user) {
-    return next(new AppError("user already exists", 400));
+  if (!user) {
+    user = await User.create({
+      firstName: name,
+      email,
+      image: picture,
+      isGoogleUser: true,
+    });
   }
 
-  user = await User.create({
-    firstName: name,
-    email,
-    image: picture,
-    googleId: uid,
-    isGoogleUser: true,
-  });
+  const jwtTokenKey = process.env.JWT_SECRET;
+  if (!jwtTokenKey) {
+    return next(
+      new AppError("JWT token key is missing in the environment", 500)
+    );
+  }
+
+  const token = await jwt.sign(
+    { email: user.email, id: user._id, roles: user.roles },
+    jwtTokenKey,
+    { expiresIn: "1d" }
+  );
+
   console.log("user from firabase google==>", user);
 
-  res
-    .status(200)
-    .json({ success: true, message: "user created successfully", user });
+  res.status(200).json({
+    success: true,
+    message: "user created successfully",
+    data: {
+      firstName: user.firstName,
+      image: user.picture,
+      email: user.email,
+    },
+    token,
+  });
 });
