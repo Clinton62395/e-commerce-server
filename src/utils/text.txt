@@ -1,0 +1,71 @@
+
+// Upload de plusieurs images (pour les produits)
+export const uploadMultipleImages = catchAsynch(async (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return next(new AppError("Aucune image uploadée", 400));
+  }
+
+  try {
+    // Upload toutes les images en parallèle
+    const uploadPromises = req.files.map((file) =>
+      cloudinary.v2.uploader.upload(file.path, {
+        folder: "products",
+        transformation: [
+          { width: 1000, height: 1000, crop: "limit" },
+          { quality: "auto" },
+        ],
+      })
+    );
+
+    const results = await Promise.all(uploadPromises);
+
+    // Supprimer tous les fichiers temporaires
+    req.files.forEach((file) => {
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    });
+
+    const imageData = results.map((result) => ({
+      url: result.secure_url,
+      publicId: result.public_id,
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: `${results.length} image(s) uploadée(s) avec succès`,
+      images: imageData,
+      urls: results.map((r) => r.secure_url), // Juste les URLs
+    });
+  } catch (error) {
+    // Nettoyer les fichiers en cas d'erreur
+    if (req.files) {
+      req.files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+    return next(new AppError("Erreur lors de l'upload des images", 500));
+  }
+});
+
+// Supprimer une image de Cloudinary
+export const deleteImage = catchAsynch(async (req, res, next) => {
+  const { publicId } = req.body;
+
+  if (!publicId) {
+    return next(new AppError("Public ID requis", 400));
+  }
+
+  try {
+    await cloudinary.v2.uploader.destroy(publicId);
+
+    res.status(200).json({
+      success: true,
+      message: "Image supprimée avec succès",
+    });
+  } catch (error) {
+    return next(new AppError("Erreur lors de la suppression de l'image", 500));
+  }
+});

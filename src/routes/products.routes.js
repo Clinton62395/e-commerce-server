@@ -8,6 +8,7 @@ import {
   updateProducts,
 } from "../controllers/products.controller.js";
 import { AdminsRoute, protectedRoute } from "../middlewares/auth.middleware.js";
+import { upload, uploadSingleImage } from "../services/uploadFile.services.js";
 
 const router = express.Router();
 router.post("/create", protectedRoute, AdminsRoute, createProducts);
@@ -18,5 +19,7 @@ router.delete("/deleteAll/", protectedRoute, AdminsRoute, deleAllProducts);
 router.get("/getAll", getAllProducts);
 
 router.get("/getOne/:id", getSingleProduct);
+
+router.post("/upload-image", upload.single("image"), uploadSingleImage);
 
 export default router;

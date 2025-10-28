@@ -5,6 +5,8 @@ import {
   newPassword,
   resetPassword,
 } from "../controllers/passwordUpdate.controller.js";
+import { passwordResetLimiter } from "../middlewares/limiter.middleware.js";
+import { subScribNewLetter } from "../controllers/subScribNewLetter.controller.js";
 
 const router = express();
 
@@ -15,9 +17,12 @@ router.post("/login", login);
 router.post("/google", googleRegister);
 
 // reset password route
-router.post("/resetPassword", resetPassword);
+router.post("/resetPassword", passwordResetLimiter, resetPassword);
 
 // new password route
 router.post("/newPassword", newPassword);
+
+// subscribe to newsletter route
+router.post("/subscribe", subScribNewLetter);
 
 export default router;
