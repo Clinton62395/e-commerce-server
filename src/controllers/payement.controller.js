@@ -51,7 +51,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
   const reference = `ORDER-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   const payment = await Payment.create({
     reference,
-    email,
+    email: email.toLowerCase(),
     amount,
     firstName,
     lastName,
