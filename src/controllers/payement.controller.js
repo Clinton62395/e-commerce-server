@@ -4,7 +4,6 @@ import doten from "dotenv";
 import { catchAsynch } from "../utils/catchAsynch.utils.js";
 import { AppError } from "../utils/appError.js";
 import { Payment } from "../models/payement.models.js";
-import crypto, { verify } from "crypto";
 import { Customer } from "@paystack/paystack-sdk/lib/apis/index.js";
 
 doten.config();

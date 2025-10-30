@@ -7,6 +7,7 @@ import authProducts from "./routes/products.routes.js";
 import payementRoute from "./routes/payement.routes.js";
 import connectDB from "./configs/DB.js";
 import limiter from "./middlewares/limiter.middleware.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ app.get("/", (req, res) => {
 });
 // user router
 app.use("/auth", authRoute);
+
+// admin route
+app.use("/admin", adminRoutes);
 
 // porduits route
 app.use("/products", authProducts);

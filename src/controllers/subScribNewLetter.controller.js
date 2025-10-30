@@ -19,7 +19,9 @@ export const subScribNewLetter = catchAsynch(async (req, res, next) => {
     return;
   }
 
-  const newSubscription = await SubScribeNewLetter.create({ email });
+  const newSubscription = await SubScribeNewLetter.create({
+    email: email.toLowerCase(),
+  });
   res.status(201).json({
     status: "success",
     data: newSubscription,
