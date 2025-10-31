@@ -113,7 +113,7 @@ export const adminLogin = catchAsynch(async (req, res, next) => {
     token,
     refreshToken,
     message: "Admin login successful",
-    data: { email: user.email },
+    data: { email: user.email, firstName: user.firstName },
   });
 });
 
