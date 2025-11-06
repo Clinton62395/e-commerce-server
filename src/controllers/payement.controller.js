@@ -5,7 +5,6 @@ import { catchAsynch } from "../utils/catchAsynch.utils.js";
 import { AppError } from "../utils/appError.js";
 import { Payment } from "../models/payement.models.js";
 import { Customer } from "@paystack/paystack-sdk/lib/apis/index.js";
-import { io } from "../server.js";
 
 doten.config();
 
@@ -64,6 +63,8 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     status: "pending",
   });
 
+  const io = req.app.get("io");
+
   io.emit("order:new", payment);
 
   try {
@@ -109,7 +110,7 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
       { reference },
       {
         $set: {
-          status: "paid",
+          status: "success",
           paidAt: paid_at,
           email,
           amount: amount / 100, // Convertir de kobo à naira
@@ -129,6 +130,7 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
         email: updatedPayment.email,
         amount: updatedPayment.amount,
         status: updatedPayment.status,
+        picture: updatedPayment.picture,
         cartItems: updatedPayment.cartItems,
         shippingInfo: {
           firstName: updatedPayment.firstName,
@@ -143,11 +145,10 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
       };
 
       // ✅ SIMPLIFICATION: Émettre à TOUS (pas de room)
-      io.emit("order:updated", {
-        payment,
-        timestamp: new Date(),
-        source: "webhook",
-      });
+
+      const io = req.app.get("io");
+
+      io.emit("order:updated", payment);
 
       console.log(
         `[Socket.IO] ✅ Transaction ${reference} notifiée aux admins`
@@ -175,10 +176,6 @@ export const getAllPayment = catchAsynch(async (req, res, next) => {
   });
 });
 
-
-
-
-
 export const verifyPayment = catchAsynch(async (req, res, next) => {
   const { reference } = req.params;
 
@@ -196,6 +193,7 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
       email: payment.email,
       amount: payment.amount,
       status: payment.status,
+      picture: payment.picture,
       cartItems: payment.cartItems,
       shippingInfo: {
         firstName: payment.firstName,
