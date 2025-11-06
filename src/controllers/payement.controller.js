@@ -64,7 +64,8 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     status: "pending",
   });
 
-  io.to("dashboard-admins").emit("orders", { newOrders: payment });
+  io.emit("order:new", payment);
+
   try {
     const paystackResponse = await paystack.transaction.initialize({
       email,
@@ -96,27 +97,87 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
 export const paystackWebhook = catchAsynch(async (req, res, next) => {
   const event = req.body;
 
-  if (event.event === "charge.success") {
-    const { reference, email, amount, paid_at } = event.data;
+  console.log("📥 Webhook reçu:", event.event);
 
-    await Payment.updateOne(
+  if (event.event === "charge.success") {
+    const { reference, email, amount, paid_at, customer } = event.data;
+
+    console.log(`💰 Paiement réussi: ${reference}`);
+
+    // ✅ CORRECTION 1: Utiliser findOneAndUpdate pour récupérer le document
+    const updatedPayment = await Payment.findOneAndUpdate(
       { reference },
       {
         $set: {
           status: "paid",
           paidAt: paid_at,
-          metadata: Customer.email,
           email,
-          amount,
+          amount: amount / 100, // Convertir de kobo à naira
         },
       },
-      { upsert: true } // crée si n’existe pas
+      {
+        new: true, // Retourner le document mis à jour
+        upsert: true,
+      }
     );
+
+    if (updatedPayment) {
+      // ✅ CORRECTION 2: Émettre les vraies données du paiement
+      const payment = {
+        id: updatedPayment._id,
+        reference: updatedPayment.reference,
+        email: updatedPayment.email,
+        amount: updatedPayment.amount,
+        status: updatedPayment.status,
+        cartItems: updatedPayment.cartItems,
+        shippingInfo: {
+          firstName: updatedPayment.firstName,
+          lastName: updatedPayment.lastName,
+          userEmail: updatedPayment.email,
+        },
+        paidAt: updatedPayment.paidAt,
+        createdAt: updatedPayment.createdAt,
+        // Infos supplémentaires
+        itemsCount: updatedPayment.cartItems?.length || 0,
+        customerName: `${updatedPayment.firstName} ${updatedPayment.lastName}`,
+      };
+
+      // ✅ SIMPLIFICATION: Émettre à TOUS (pas de room)
+      io.emit("order:updated", {
+        payment,
+        timestamp: new Date(),
+        source: "webhook",
+      });
+
+      console.log(
+        `[Socket.IO] ✅ Transaction ${reference} notifiée aux admins`
+      );
+    }
   }
 
   // Paystack doit recevoir une réponse 200
   res.sendStatus(200);
 });
+
+// get All payment
+
+export const getAllPayment = catchAsynch(async (req, res, next) => {
+  const payments = await Payment.find().sort({ createdAt: -1 });
+
+  if (!payments || payments.length === 0) {
+    return next(new AppError("Aucun paiement trouvé", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Paiements récupérés avec succès",
+    data: payments,
+  });
+});
+
+
+
+
 
 export const verifyPayment = catchAsynch(async (req, res, next) => {
   const { reference } = req.params;
@@ -126,29 +187,6 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
   if (!payment) {
     return next(new AppError("Payment reference not found", 404));
   }
-
-  io.to("dashboard-admins").emit("new-successful-transaction", {
-    data: {
-      reference: payment.reference,
-      email: payment.email,
-      amount: payment.amount,
-      status: payment.status,
-      cartItems: payment.cartItems,
-      shippingInfo: {
-        firstName: payment.firstName,
-        lastName: payment.lastName,
-        userEmail: payment.email,
-        address: payment.address,
-        saveInfo: payment.saveInfo,
-
-        city: payment.city,
-        country: payment.country,
-        postalCode: payment.postalCode,
-      },
-      paidAt: payment.paidAt,
-      createdAt: payment.createdAt,
-    },
-  });
 
   res.status(200).json({
     success: true,

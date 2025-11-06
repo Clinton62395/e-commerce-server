@@ -22,4 +22,10 @@ router.get("/getOne/:id", getSingleProduct);
 
 router.post("/upload-image", upload.single("image"), uploadSingleImage);
 
+
+
+
+
+
+
 export default router;

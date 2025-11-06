@@ -39,22 +39,17 @@ app.get("/", (req, res) => {
 
 // 🔌 Gestion de la connexion socket.io
 io.on("connection", (socket) => {
-  console.log("🟢 Nouvelle connexion socket :", socket.id);
+  console.log("✅ Admin connecté:", socket.id);
 
-  // Quand un admin rejoint le dashboard
-  socket.on("join-dashboard", (adminData) => {
-    console.log(`👑 Admin connecté : ${adminData.userName}`);
-    socket.join("dashboard-admins");
-    // Envoie un message de confirmation à l’admin connecté
-    socket.emit("dashboard-connected", {
-      message: "Dashboard connecté en temps réel ✅",
-      timeStamp: new Date(),
-    });
+  // Optionnel: Envoyer une confirmation au client
+  socket.emit("connection-confirmed", {
+    message: "Dashboard connecté en temps réel ✅",
+    socketId: socket.id,
+    timestamp: new Date(),
   });
 
-  // Déconnexion d’un client
   socket.on("disconnect", () => {
-    console.log("🔴 Déconnexion socket :", socket.id);
+    console.log("❌ Admin déconnecté:", socket.id);
   });
 });
 
