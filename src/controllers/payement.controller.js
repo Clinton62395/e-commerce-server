@@ -5,6 +5,7 @@ import { catchAsynch } from "../utils/catchAsynch.utils.js";
 import { AppError } from "../utils/appError.js";
 import { Payment } from "../models/payement.models.js";
 import { Customer } from "@paystack/paystack-sdk/lib/apis/index.js";
+import { io } from "../server.js";
 
 doten.config();
 
@@ -63,6 +64,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     status: "pending",
   });
 
+  io.to("dashboard-admins").emit("orders", { newOrders: payment });
   try {
     const paystackResponse = await paystack.transaction.initialize({
       email,
@@ -97,8 +99,6 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
   if (event.event === "charge.success") {
     const { reference, email, amount, paid_at } = event.data;
 
-    console.log("Paiement confirmé pour :", email);
-
     await Payment.updateOne(
       { reference },
       {
@@ -126,6 +126,29 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
   if (!payment) {
     return next(new AppError("Payment reference not found", 404));
   }
+
+  io.to("dashboard-admins").emit("new-successful-transaction", {
+    data: {
+      reference: payment.reference,
+      email: payment.email,
+      amount: payment.amount,
+      status: payment.status,
+      cartItems: payment.cartItems,
+      shippingInfo: {
+        firstName: payment.firstName,
+        lastName: payment.lastName,
+        userEmail: payment.email,
+        address: payment.address,
+        saveInfo: payment.saveInfo,
+
+        city: payment.city,
+        country: payment.country,
+        postalCode: payment.postalCode,
+      },
+      paidAt: payment.paidAt,
+      createdAt: payment.createdAt,
+    },
+  });
 
   res.status(200).json({
     success: true,

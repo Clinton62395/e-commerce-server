@@ -13,6 +13,7 @@ export const createProducts = catchAsynch(async (req, res, next) => {
     size,
     picture,
     quantity,
+    discountPrice,
     title,
   } = req.body;
   const requiredFields = [
@@ -45,6 +46,7 @@ export const createProducts = catchAsynch(async (req, res, next) => {
     picture,
     quantity,
     title,
+    discountPrice
   });
 
   res.status(201).json({

@@ -18,6 +18,7 @@ const productsSchema = new mongoose.Schema(
     },
 
     price: { type: Number, required: true, default: 0 },
+    discountPrice: { type: Number, default: 0 },
 
     quantity: { type: Number, required: true, default: 0 },
 
@@ -36,6 +37,7 @@ const productsSchema = new mongoose.Schema(
       default: [],
     },
 
+    releaseDate: Date,
     color: { type: Array, required: true, default: [] },
 
     brands: { type: [String], default: [] },
