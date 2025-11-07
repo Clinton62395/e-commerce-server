@@ -32,10 +32,11 @@ const paymentSchema = new mongoose.Schema(
         title: { type: String, required: true },
         price: { type: Number, required: true },
         quantity: { type: Number, default: 1 },
+        picture: { type: String },
       },
     ],
-
-    reference: { type: String, status: "pending" },
+    status: { type: String, default: "pending" },
+    reference: { type: String },
   },
   { timestamps: true }
 );

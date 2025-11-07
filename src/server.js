@@ -59,6 +59,18 @@ app.use("/admin", adminRoutes);
 app.use("/products", authProducts);
 app.use("/payment", payementRoute);
 
+app.get("/test-update", (req, res) => {
+  const io = req.app.get("io");
+  io.emit("order:updated", {
+    reference: "ORDER-123",
+    status: "success",
+    amount: 5000,
+    firstName: "Test",
+    lastName: "User",
+  });
+  res.send("Événement order:updated envoyé");
+});
+
 // 🛑 Route non trouvée
 app.use((req, res) => {
   res.status(404).json({

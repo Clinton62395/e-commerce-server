@@ -64,7 +64,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
   });
 
   const io = req.app.get("io");
-
+  console.log("📡 Émission Socket.IO: order:new", payment);
   io.emit("order:new", payment);
 
   try {
@@ -99,9 +99,10 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
   const event = req.body;
 
   console.log("📥 Webhook reçu:", event.event);
+  console.log("📥 Webhook reçu status:", event.data.status);
 
   if (event.event === "charge.success") {
-    const { reference, email, amount, paid_at, customer } = event.data;
+    const { reference, email, amount, paid_at, customer, status } = event.data;
 
     console.log(`💰 Paiement réussi: ${reference}`);
 
@@ -110,7 +111,7 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
       { reference },
       {
         $set: {
-          status: "success",
+          status: status,
           paidAt: paid_at,
           email,
           amount: amount / 100, // Convertir de kobo à naira
@@ -127,53 +128,33 @@ export const paystackWebhook = catchAsynch(async (req, res, next) => {
       const payment = {
         id: updatedPayment._id,
         reference: updatedPayment.reference,
-        email: updatedPayment.email,
         amount: updatedPayment.amount,
         status: updatedPayment.status,
-        picture: updatedPayment.picture,
+        picture: updatedPayment?.picture,
         cartItems: updatedPayment.cartItems,
-        shippingInfo: {
-          firstName: updatedPayment.firstName,
-          lastName: updatedPayment.lastName,
-          userEmail: updatedPayment.email,
-        },
+
+        firstName: updatedPayment.firstName,
+        lastName: updatedPayment.lastName,
         paidAt: updatedPayment.paidAt,
         createdAt: updatedPayment.createdAt,
         // Infos supplémentaires
-        itemsCount: updatedPayment.cartItems?.length || 0,
-        customerName: `${updatedPayment.firstName} ${updatedPayment.lastName}`,
       };
 
       // ✅ SIMPLIFICATION: Émettre à TOUS (pas de room)
 
       const io = req.app.get("io");
 
+      console.log("📡 Émission Socket.IO: order:updated", payment);
       io.emit("order:updated", payment);
 
       console.log(
-        `[Socket.IO] ✅ Transaction ${reference} notifiée aux admins`
+        `[Socket.IO] ✅ Transaction ${payment.reference} notifiée aux admins`
       );
     }
   }
 
   // Paystack doit recevoir une réponse 200
   res.sendStatus(200);
-});
-
-// get All payment
-
-export const getAllPayment = catchAsynch(async (req, res, next) => {
-  const payments = await Payment.find().sort({ createdAt: -1 });
-
-  if (!payments || payments.length === 0) {
-    return next(new AppError("Aucun paiement trouvé", 404));
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Paiements récupérés avec succès",
-    data: payments,
-  });
 });
 
 export const verifyPayment = catchAsynch(async (req, res, next) => {
@@ -209,5 +190,22 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
       paidAt: payment.paidAt,
       createdAt: payment.createdAt,
     },
+  });
+});
+
+// get All payment
+
+export const getAllPayment = catchAsynch(async (req, res, next) => {
+  const payments = await Payment.find().sort({ createdAt: -1 });
+
+  if (!payments || payments.length === 0) {
+    return next(new AppError("no payment found", 404));
+  }
+
+  console.log("data payment send to front ==>", payments);
+  res.status(200).json({
+    success: true,
+    message: "Payment data successful",
+    data: payments,
   });
 });
