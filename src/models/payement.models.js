@@ -32,7 +32,12 @@ const paymentSchema = new mongoose.Schema(
         title: { type: String, required: true },
         price: { type: Number, required: true },
         quantity: { type: Number, default: 1 },
-        picture: { type: String },
+        picture: [
+          {
+            url: { type: String, required: true },
+            public_id: { type: String, required: true },
+          },
+        ],
       },
     ],
     status: { type: String, default: "pending" },

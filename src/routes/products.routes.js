@@ -9,6 +9,7 @@ import {
 } from "../controllers/products.controller.js";
 import { AdminsRoute, protectedRoute } from "../middlewares/auth.middleware.js";
 import { upload, uploadSingleImage } from "../services/uploadFile.services.js";
+import { getFilterdProducts } from "../controllers/ProductFilters.controller.js";
 
 const router = express.Router();
 router.post("/create", protectedRoute, AdminsRoute, createProducts);
@@ -22,10 +23,8 @@ router.get("/getOne/:id", getSingleProduct);
 
 router.post("/upload-image", upload.single("image"), uploadSingleImage);
 
+// products filter by category
 
-
-
-
-
+router.get("/filters", getFilterdProducts);
 
 export default router;

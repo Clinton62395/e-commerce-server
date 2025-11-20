@@ -11,4 +11,7 @@ router.post("/register", adminRegister);
 router.post("/login", adminLogin);
 router.post("/otp-secret", getOtpSecret);
 
+
+
+
 export default router;

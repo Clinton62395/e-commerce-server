@@ -59,6 +59,7 @@ export const initialisePayment = catchAsynch(async (req, res, next) => {
     address,
     postalCode,
     cartItems,
+    createdAt: Date.now(),
     saveInfo,
     status: "pending",
   });
@@ -164,6 +165,10 @@ export const verifyPayment = catchAsynch(async (req, res, next) => {
 
   if (!payment) {
     return next(new AppError("Payment reference not found", 404));
+  }
+
+  if (payment.status == "pending") {
+    payment.save == "success";
   }
 
   res.status(200).json({

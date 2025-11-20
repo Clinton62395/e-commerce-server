@@ -51,7 +51,7 @@ export const adminRegister = catchAsynch(async (req, res, next) => {
   const token = jwt.sign(
     { email: newAdmin.email, id: newAdmin._id, roles: newAdmin.roles },
     tokenKey,
-    { expiresIn: "1h" }
+    { expiresIn: "3h" }
   );
 
   const refreshToken = jwt.sign(
@@ -99,7 +99,7 @@ export const adminLogin = catchAsynch(async (req, res, next) => {
   const token = jwt.sign(
     { email: user.email, id: user._id, roles: user.roles },
     tokenKey,
-    { expiresIn: "1h" }
+    { expiresIn: "3h" }
   );
 
   const refreshToken = jwt.sign(
